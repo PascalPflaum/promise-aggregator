@@ -1,0 +1,12 @@
+{
+  "env": {
+    "node": true,
+    "browser": true,
+    "mocha": true
+  },
+  "globals": {
+    "chai": true,
+    "sinon": true,
+    "assert": true
+  }
+}
