@@ -26,6 +26,7 @@ const getUserAccount = function() {
 
 just wrap the lines with promise-aggregator
 ```javascript
+const aggregate = require('promise-aggregate');
 const getUserAccount = aggregate(function() {
     return axios.get('/user/12345');
 });
