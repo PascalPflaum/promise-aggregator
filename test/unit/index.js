@@ -162,4 +162,91 @@ describe('two runs', function () {
                 });
         });
     });
+
+
+    describe('arguments', function () {
+
+        it('arguments get forwarded', function () {
+
+            const shouldBeArgs = [
+                1,
+                '!',
+                () => {
+                },
+            ];
+
+            const aggregation = aggregator(function (...args) {
+                assert.deepEqual(args, shouldBeArgs);
+                return new Promise(autoResolver());
+            });
+
+            const spy = sinon.spy();
+
+            return aggregation.apply(undefined, shouldBeArgs)
+                .then(spy)
+                .then(() => {
+                    assert.ok(spy.calledOnce);
+                });
+        });
+
+        it('call get aggregated, when using the same parameter', function () {
+
+            const shouldBeArgs = [
+                1,
+                '!',
+                () => {
+                },
+            ];
+
+            function runner(...args) {
+                assert.deepEqual(args, shouldBeArgs);
+                return new Promise(autoResolverDelayed('test'));
+            }
+
+            const runnerSpy = sinon.spy(runner);
+            const aggregation = aggregator(runnerSpy);
+
+            return Promise.all([
+                aggregation.apply(undefined, shouldBeArgs),
+                aggregation.apply(undefined, shouldBeArgs),
+            ])
+                .then((data) => {
+                    assert.ok(runnerSpy.calledOnce);
+                    assert.deepEqual(data, ['test', 'test']);
+                });
+        });
+
+        it('two calls dont interfere', function () {
+
+            const shouldBeArgsA = [
+                1,
+                '!',
+                function () {
+                },
+            ];
+
+            const shouldBeArgsB = [
+                1,
+                '!',
+                '!',
+            ];
+
+            function runner() {
+                return new Promise(autoResolverDelayed('test'));
+            }
+
+            const runnerSpy = sinon.spy(runner);
+            const aggregation = aggregator(runnerSpy);
+
+            return Promise.all([
+                aggregation.apply(undefined, shouldBeArgsA),
+                aggregation.apply(undefined, shouldBeArgsB),
+            ])
+                .then((data) => {
+                    assert.ok(runnerSpy.calledTwice);
+                    assert.deepEqual(data, ['test', 'test']);
+                });
+
+        });
+    });
 });

@@ -1,4 +1,5 @@
 const instanceFactory = (cb) => {
+
     let runningPromise = null;
     let aggregations = [];
 
@@ -24,16 +25,36 @@ const instanceFactory = (cb) => {
         });
     };
 
-    function wrapper() {
-        if (!runningPromise) {
-            runningPromise = cb()
+    function wrapper(...args) {
+
+        runningPromise = runningPromise || cb.apply(undefined, args)
                 .then(onEnd)
                 .catch(onFail);
-        }
+
         return newAggregation();
     }
 
     return wrapper;
 };
 
-module.exports = instanceFactory;
+
+const argumentInstanceFactory = (cb, stringify = JSON.stringify) => {
+
+    const instances = new Map();
+
+    function wrapper(...args) {
+
+        const key = stringify(args);
+
+        if (!instances.has(key)) {
+            instances.set(key, instanceFactory(cb));
+        }
+
+        return instances.get(key).apply(undefined, args);
+    }
+
+    return wrapper;
+
+};
+
+module.exports = argumentInstanceFactory;
